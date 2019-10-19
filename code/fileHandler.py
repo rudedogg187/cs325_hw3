@@ -26,54 +26,6 @@ def writeFile(savePath, fileContent):
     f.write(raw)
 
 
-def parseShoppingx(filePath):
-  with open(filePath) as f:
-    raw = f.readlines()
-     
-  t = int(raw[0].replace("\n", "")) #number of tests
-  test_lst = []
-
-  raw = raw[1:]
-
-  while t > 0:
-    params = {}
-    item_ct = int(raw[0].replace("\n", "")) #number of items
-    params["item_ct"] = item_ct
-    raw = raw[1:]
-
-    item_lst = raw[:item_ct]
-    params["item_lst"] = []
-    for i in range(0, len(item_lst)):
-      item = {}
-
-      splt = item_lst[i].split(" ")
-
-      item["price"] = int(splt[0])
-      item["weight"] = int(splt[1].replace("\n", ""))
-
-      params["item_lst"].append(item)
-
-    raw = raw[item_ct:]
-
-    family_ct = int(raw[0].replace("\n", "")) #number of members
-    params["family_ct"] = family_ct
-    raw = raw[1:]
-
-    family_lst = raw[:family_ct]
-    for i in range(0, len(family_lst)):
-      family_lst[i] = int(family_lst[i].replace("\n", ""))
-
-    params["family_lst"] = family_lst
-    raw = raw[family_ct:]
-	
-    t -= 1
-
-    test_lst.append(params)
-
-
-  return test_lst
-
-  
 
 
 def parseShopping(filePath):
@@ -128,6 +80,10 @@ def parseShopping(filePath):
   
 
 
+# write the shopping spree to result.txt.txt
+def writeShopping(savePath, fileContent):
+  with open(savePath, "w+") as f:
+    f.write(fileContent)
     
       
 

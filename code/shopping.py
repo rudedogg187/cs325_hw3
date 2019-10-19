@@ -1,5 +1,5 @@
 # CS325 OSU
-# INSERT SORT
+# SHOPPING SPREE
 # ASSIGNMENT 3
 # 21 OCT 2019
 ##################
@@ -9,11 +9,9 @@
 
 import fileHandler
 import cleanup
-import mergesort
 
 
-
-# type of sorting method, also output file name
+# name of algorithm
 NAME = "shopping"
 
 
@@ -21,7 +19,15 @@ NAME = "shopping"
 filePath = "shopping.txt"
 
 # path to output file
-savePath = "{}.txt".format(NAME)
+savePath = "result.txt"
+
+def lstMax(lst):
+  mx = 0
+  for i in range(1, len(lst)):
+    if lst[i] > lst[mx]:
+      mx = i
+  return mx
+
 
 
 def buildMatrix(width, height):
@@ -78,6 +84,8 @@ def getItems(max_weight, matrix, item_lst):
   total_wgt = 0
   total_val = 0
 
+  items = []
+
   while i > 0: # and w > 0:
     cell_val = matrix[i][w]
     above_val = matrix[i - 1][w]
@@ -85,20 +93,20 @@ def getItems(max_weight, matrix, item_lst):
     item_val = item_lst[i]["price"]
 
     if cell_val != above_val:
-      print "Item {} ({}lbs) WAS used (${}.00)".format(i, item_wgt, item_val)
+      #print "Item {} ({}lbs) WAS used (${}.00)".format(i, item_wgt, item_val)
       total_wgt += item_wgt
       total_val += item_val
       w -= item_wgt
-    
-    '''
-    else:
-      print "Item {} WAS NOT used".format(i)
-    '''
 
+      items.append(i) 
+    
     i -= 1
+
+  return { "val": total_val, "items": items }
    
-  print "_______"
-  print "\t({}lbs)\t${}.00".format(total_wgt, total_val) 
+  #print "_______"
+  #print "\t({}lbs)\t${}.00".format(total_wgt, total_val) 
+
 
   '''
   for row in matrix:
@@ -110,22 +118,46 @@ def getItems(max_weight, matrix, item_lst):
 
 
 def maximizeShopping(item_lst, family_lst):
-  # sort family list, this is to make sure the we can get the greatest weight
-  mergesort.mergeSort(family_lst, 0, len(family_lst) - 1)
-
   #add a 0 weight, 0 value item to the start of the item lst
   item_lst = [{"price": 0, "weight": 0}] + item_lst
 
+  # get the index of the highest capacity family member
+  max_i = lstMax(family_lst)
+  
   # build a table to house 0 to max weight of family by 0 item count
-  matrix = buildMatrix(family_lst[-1] + 1, len(item_lst))
+  matrix = buildMatrix(family_lst[max_i] + 1, len(item_lst))
 
   # iterate through family members, exlude fist member because this always has aweight of zero
+  family_val = 0
+  member_items = []
   for i in range(0, len(family_lst)):#[-1:]:
     member_weight = family_lst[i]
     knapShop(member_weight, matrix, item_lst)
-    getItems(member_weight, matrix, item_lst)
+    result = getItems(member_weight, matrix, item_lst)
+    family_val += result["val"]
+    member_items.append(result["items"])
 
 
+  return { "family_val": family_val, "member_items": member_items }
+
+def buildResultString(test_results):
+  result_string = ""
+  for test in test_results:
+    result_string += "Test Case {}\n".format(test["case"])
+    result_string += "Total Price {}\n".format(test["family_val"])
+    result_string += "Member Items:\n"
+
+    for m in range(0, len(test["member_items"])):
+      items = test["member_items"][m]
+      result_string += "{}: ".format(m + 1)
+      for i in range(0, len(items)):
+        result_string += "{} ".format(items[len(items) -1 -i])
+
+      result_string += '\n'
+
+    result_string += "\n"
+
+  return result_string[:-2]
 
 
 
@@ -133,31 +165,27 @@ def main():
   # get contents of input file
   fileContent = fileHandler.parseShopping(filePath)
 
-  for test in fileContent:#[1:2]:
+  t = 1
+  test_results = []
+  for test in fileContent[0:20]:
     item_lst = test["item_lst"]
     family_lst = test["family_lst"]
-    ###### TEST TEST TEST
-    '''
-    item_lst = [
-      {"price": 1, "weight": 2},
-      {"price": 2, "weight": 3},
-      {"price": 5, "weight": 4},
-      {"price": 6, "weight": 5}
-    ]
+    result = maximizeShopping(item_lst, family_lst)
+    result["case"] = t 
+    test_results.append(result)
 
-    family_lst = [8]
-    '''
-    ###### TEST TEST TEST
-    maximizeShopping(item_lst, family_lst)
+    t += 1
 
-  
+  result_string = buildResultString(test_results)
+
+  print result_string
 
   # write data to output file
-  #fileHandler.writeFile(savePath, fileContent)
+  fileHandler.writeShopping(savePath, result_string)
   cleanup.pyc()
 
 
 if __name__ == "__main__":
-  print("{}{} Sort".format(NAME[0].upper(), NAME[1:]))
+  print("{}{} Spree".format(NAME[0].upper(), NAME[1:]))
   main()
 
